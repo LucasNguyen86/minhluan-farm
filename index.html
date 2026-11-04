@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minh Luan Farm</title>
+    <!-- Nhúng Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary: #4e73df; --success: #1cc88a; --danger: #e74a3b; 
+            --warning: #f6c23e; --info: #36b9cc; --dark: #5a5c69; --bg: #f8f9fc;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: var(--primary); margin: 0; text-transform: uppercase; }
+        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        
+        .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
+        .card.env { border-left-color: var(--info); }
+        .card.power { border-left-color: var(--warning); }
+        .card.control { border-left-color: var(--success); text-align: center; }
+        .card.light { border-left-color: var(--primary); text-align: center; }
+        
+        .card h3 { margin-top: 0; color: #b7b9cc; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .data-row { display: flex; justify-content: space-between; margin: 12px 0; font-size: 16px; font-weight: bold; }
+        .val { font-size: 1.3em; color: var(--dark); }
+        
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .btn { padding: 12px; font-size: 14px; font-weight: bold; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        
+        .btn-start { background: var(--success); }
+        .btn-stop { background: var(--danger); }
+        .btn-auto { background: var(--primary); grid-column: span 2; }
+        
+        /* --- CẤU HÌNH NÚT TOGGLE & BÓNG ĐÈN --- */
+        .relay-container { display: flex; align-items: center; gap: 15px; margin-top: 5px; }
+        .btn-toggle { flex: 1; background: #ccc; opacity: 1 !important; margin-top: 0; }
+        
+        .bulb-icon { transition: all 0.3s ease; }
+        .bulb-on { color: #ffca28; filter: drop-shadow(0 0 8px rgba(255, 202, 40, 0.8)); }
+        .bulb-off { color: #ccc; filter: drop-shadow(0 0 0px transparent); }
+        /* -------------------------------------- */
+        
+        .status { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Trung Tâm Điều Khiển Solar Pump</h1>
+        <p>Giám sát Môi trường, Pin & Điều khiển Thiết Bị</p>
+    </div>
+
+    <div class="container">
+        <!-- 1. Khung Môi Trường -->
+        <div class="card env">
+            <h3>MÔI TRƯỜNG</h3>
+            <div class="data-row"><span>Nhiệt độ </span><span class="val" id="val_nhietdo">-- °C</span></div>
+            <div class="data-row"><span>Độ ẩm </span><span class="val" id="val_doam">-- %</span></div>
+        </div>
+
+        <!-- 2. Khu vực Điện áp & Pin -->
+        <div class="card power">
+            <h3>HỆ THỐNG PIN & ĐIỆN ÁP</h3>
+            <div class="data-row"><span>Điện áp Pin 8S</span><span class="val" id="val_volt" style="color: var(--primary);">-- V</span></div>
+            <div class="data-row"><span>Dung lượng Pin</span><span class="val" id="val_pin" style="color: var(--success);">-- %</span></div>
+        </div>
+
+        <!-- 3. Khu vực Điều khiển Bơm -->
+        <div class="card control">
+            <h3>ĐIỀU KHIỂN BƠM NƯỚC</h3>
+            <div class="btn-group">
+                <button class="btn btn-start" onclick="sendTrigger('Start')">BƠM THỦ CÔNG</button>
+                <button class="btn btn-stop" onclick="sendTrigger('Stop')">DỪNG BƠM</button>
+                <button class="btn btn-auto" onclick="sendTrigger('Auto')">BƠM TỰ ĐỘNG (100s)</button>
+            </div>
+        </div>
+
+        <!-- 4. Khu vực Điều khiển RL1 & RL2 -->
+        <div class="card light">
+            <h3>ĐIỀU KHIỂN THIẾT BỊ (RL1 & RL2)</h3>
+            
+            <!-- Thiết Bị 1 -->
+            <div style="margin-bottom: 20px;">
+                <div class="status">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 1 (RL1)</span>
+                    <span id="RL1">--</span>
+                </div>
+                <div class="relay-container">
+                    <svg id="icon_rl1" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                    <button id="btn_rl1_toggle" class="btn btn-toggle" onclick="toggleRelay('RL1')">ĐANG TẢI...</button>
+                </div>
+            </div>
+
+            <!-- Thiết Bị 2 -->
+            <div>
+                <div class="status">
+                    <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 2 (RL2)</span>
+                    <span id="RL2">--</span>
+                </div>
+                <div class="relay-container">
+                    <svg id="icon_rl2" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
+                    </svg>
+                    <button id="btn_rl2_toggle" class="btn btn-toggle" onclick="toggleRelay('RL2')">ĐANG TẢI...</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình kết nối Firebase
+        var firebaseConfig = {
+            apiKey: "AIzaSyBXIylonI1bj81iBZDHGKeUiArxbRqNQDA", 
+            databaseURL: "https://mrluan-bd4bd-default-rtdb.firebaseio.com",
+            projectId: "mrluan-bd4bd"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.database();
+
+        let currentRL1 = 0;
+        let currentRL2 = 0;
+
+        function sendTrigger(cmd) {
+            db.ref("/Esp32/DieuKhienBOM/" + cmd).set(1)
+              .then(() => console.log("Đã gửi lệnh: " + cmd))
+              .catch((error) => console.error("Lỗi:", error));
+        }
+
+        function sendState(cmd, state) {
+            db.ref("/Esp32/dieukhien/" + cmd).set(state)
+              .then(() => console.log("Đã gửi trạng thái: " + cmd + " = " + state))
+              .catch((error) => console.error("Lỗi:", error));
+        }
+
+        function toggleRelay(rlName) {
+            if (rlName === 'RL1') {
+                let nextState = currentRL1 === 1 ? 0 : 1; 
+                sendState('RL1', nextState);
+            } else if (rlName === 'RL2') {
+                let nextState = currentRL2 === 1 ? 0 : 1; 
+                sendState('RL2', nextState);
+            }
+        }
+
+        db.ref("/Esp32/nhandulieu").on("value", function(snapshot) {
+            var data = snapshot.val();
+            if (data) {
+                if (data.ND1 !== undefined) document.getElementById("val_nhietdo").innerText = Number(data.ND1).toFixed(1) + " °C";
+                if (data.DA1 !== undefined) document.getElementById("val_doam").innerText = Number(data.DA1).toFixed(0) + " %";
+
+                let volt = data.Volt1_PUMP !== undefined ? data.Volt1_PUMP : data.Volt1;
+                if (volt !== undefined) {
+                    document.getElementById("val_volt").innerText = Number(volt).toFixed(1) + " V";
+                }
+
+                let pin = data.PIN_PUMP !== undefined ? data.PIN_PUMP : data.PIN;
+                if (pin !== undefined) {
+                    let pinEl = document.getElementById("val_pin");
+                    pinEl.innerText = Number(pin).toFixed(0) + " %";
+                    pinEl.style.color = pin < 20 ? "var(--danger)" : (pin < 50 ? "var(--warning)" : "var(--success)");
+                }
+
+                // Cập nhật Relay 1 và icon
+                let valRl1 = data.rl1 !== undefined ? data.rl1 : data.RL1;
+                if (valRl1 !== undefined) {
+                    currentRL1 = Number(valRl1);
+                    let st1 = document.getElementById("RL1");
+                    let btnToggle1 = document.getElementById("btn_rl1_toggle");
+                    let icon1 = document.getElementById("icon_rl1");
+
+                    if (currentRL1 === 1) {
+                        st1.innerText = "ON";
+                        st1.style.color = "var(--success)";
+                        btnToggle1.innerText = "NHẤN ĐỂ TẮT";
+                        btnToggle1.style.background = "var(--danger)";
+                        icon1.classList.add("bulb-on");
+                        icon1.classList.remove("bulb-off");
+                    } else {
+                        st1.innerText = "OFF";
+                        st1.style.color = "var(--danger)";
+                        btnToggle1.innerText = "NHẤN ĐỂ BẬT";
+                        btnToggle1.style.background = "var(--success)";
+                        icon1.classList.add("bulb-off");
+                        icon1.classList.remove("bulb-on");
+                    }
+                }
+
+                // Cập nhật Relay 2 và icon
+                let valRl2 = data.rl2 !== undefined ? data.rl2 : data.RL2;
+                if (valRl2 !== undefined) {
+                    currentRL2 = Number(valRl2);
+                    let st2 = document.getElementById("RL2");
+                    let btnToggle2 = document.getElementById("btn_rl2_toggle");
+                    let icon2 = document.getElementById("icon_rl2");
+
+                    if (currentRL2 === 1) {
+                        st2.innerText = "ON";
+                        st2.style.color = "var(--success)";
+                        btnToggle2.innerText = "NHẤN ĐỂ TẮT";
+                        btnToggle2.style.background = "var(--danger)";
+                        icon2.classList.add("bulb-on");
+                        icon2.classList.remove("bulb-off");
+                    } else {
+                        st2.innerText = "OFF";
+                        st2.style.color = "var(--danger)";
+                        btnToggle2.innerText = "NHẤN ĐỂ BẬT";
+                        btnToggle2.style.background = "var(--success)";
+                        icon2.classList.add("bulb-off");
+                        icon2.classList.remove("bulb-on");
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
