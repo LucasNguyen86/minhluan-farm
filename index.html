@@ -13,8 +13,36 @@
             --warning: #f6c23e; --info: #36b9cc; --dark: #5a5c69; --bg: #f8f9fc;
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { color: var(--primary); margin: 0; text-transform: uppercase; }
+        
+        /* --- HEADER FULL HÌNH ẢNH NỀN --- */
+        .header { 
+            position: relative;
+            /* Thay link ảnh bên dưới bằng ảnh thực tế của bạn nếu muốn */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #ffffff;
+            text-align: center; 
+            padding: 45px 20px; 
+            border-radius: 12px;
+            margin-bottom: 30px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .header h1 { 
+            color: #ffffff; 
+            margin: 0; 
+            text-transform: uppercase; 
+            font-size: 28px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+        }
+        .header p { 
+            margin: 8px 0 0 0; 
+            color: #f1f5f9; 
+            font-size: 16px; 
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+        }
+
         .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         
         .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
