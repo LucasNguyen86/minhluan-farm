@@ -27,55 +27,29 @@
             margin-bottom: 30px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .header h1 { 
-            color: #ffffff; 
-            margin: 0; 
-            text-transform: uppercase; 
-            font-size: 28px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-        }
-        .header p { 
-            margin: 8px 0 0 0; 
-            color: #f1f5f9; 
-            font-size: 16px; 
-            font-weight: 600;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-        }
+        .header h1 { color: #ffffff; margin: 0; text-transform: uppercase; font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+        .header p { margin: 8px 0 0 0; color: #f1f5f9; font-size: 16px; font-weight: 600; text-shadow: 1px 1px 3px rgba(0,0,0,0.6); }
 
-        /* --- BỐ CỤC CHÍNH (CÓ ẢNH 2 BÊN) --- */
+        /* --- BỐ CỤC CHÍNH (CÓ ẢNH 2 BÊN TRÊN PC) --- */
         .main-wrapper {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: flex-start;
             gap: 20px;
-            max-width: 1400px; /* Mở rộng tối đa để chứa ảnh */
+            max-width: 100%; 
             margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* Khung ảnh 2 bên */
-        .side-banner {
-            flex: 0 0 250px; /* Độ rộng cố định của khung ảnh là 250px */
-            display: none; /* Ẩn đi trên màn hình nhỏ */
-        }
-        .side-banner img {
-            width: 100%;
-            height: auto;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            object-fit: cover;
-        }
+        .side-banner { flex: 0 0 250px; display: none; }
+        .side-banner img { width: 100%; height: auto; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); object-fit: cover; }
+        
+        /* Hiển thị ảnh 2 bên nếu màn hình đủ lớn (PC) */
+        @media (min-width: 1100px) { .side-banner { display: block; } }
 
-        /* Dashboard trung tâm */
-        .container { flex: 1; max-width: 900px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        /* --- CARD & DASHBOARD --- */
+        .container { flex: 1; max-width: 900px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 0 auto; }
         
-        /* Hiển thị ảnh 2 bên nếu màn hình đủ lớn (PC/Laptop) */
-        @media (min-width: 1100px) {
-            .side-banner {
-                display: block;
-            }
-        }
-        
-        /* --- CARD STYLE --- */
         .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
         .card.env { border-left-color: var(--info); }
         .card.power { border-left-color: var(--warning); }
@@ -94,7 +68,7 @@
         .btn-stop { background: var(--danger); }
         .btn-auto { background: var(--primary); grid-column: span 2; }
         
-        /* --- CẤU HÌNH NÚT TOGGLE & BÓNG ĐÈN --- */
+        /* CẤU HÌNH NÚT TOGGLE & BÓNG ĐÈN */
         .relay-container { display: flex; align-items: center; gap: 15px; margin-top: 5px; }
         .btn-toggle { flex: 1; background: #ccc; opacity: 1 !important; margin-top: 0; }
         
@@ -103,6 +77,18 @@
         .bulb-off { color: #ccc; filter: drop-shadow(0 0 0px transparent); }
         
         .status { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+
+        /* --- TỐI ƯU HIỂN THỊ RIÊNG CHO ĐIỆN THOẠI (MOBILE RESPONSIVE) --- */
+        @media (max-width: 768px) {
+            body { padding: 10px; } /* Giảm viền lề ngoài cùng */
+            .header { padding: 60px 15px; margin-bottom: 20px; } /* Thu nhỏ chiều cao ảnh bìa */
+            .header h1 { font-size: 22px; }
+            .header p { font-size: 14px; }
+            .main-wrapper { padding: 0 5px; gap: 0; }
+            .container { grid-template-columns: 1fr; gap: 15px; } /* Ép các khung thẻ thành 1 cột dọc */
+            .btn { font-size: 12px; padding: 10px; } /* Thu nhỏ nút bấm để chữ không bị tràn */
+            .relay-container { gap: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -112,32 +98,31 @@
         <p>Giám sát Môi trường, Pin & Điều khiển Thiết Bị</p>
     </div>
 
-    <!-- KHUNG BAO BỌC CHÍNH ĐỂ CHIA 3 CỘT -->
+    <!-- KHUNG BAO BỌC CHÍNH ĐỂ CHIA CỘT -->
     <div class="main-wrapper">
         
-        <!-- Khung ảnh BÊN TRÁI -->
+        <!-- Ảnh Bên Trái -->
         <div class="side-banner">
-            <!-- Thay đường dẫn ảnh của bạn vào thuộc tính src -->
-            <img src="TRAI.jpg" alt="Ảnh quảng cáo trái">
+            <img src="banner-left.jpg" alt="Banner trái">
         </div>
 
-        <!-- DASHBOARD CHÍNH Ở GIỮA -->
+        <!-- Dashboard Chính -->
         <div class="container">
-            <!-- 1. Khung Môi Trường -->
+            <!-- 1. Môi Trường -->
             <div class="card env">
                 <h3>MÔI TRƯỜNG</h3>
                 <div class="data-row"><span>Nhiệt độ </span><span class="val" id="val_nhietdo">-- °C</span></div>
                 <div class="data-row"><span>Độ ẩm </span><span class="val" id="val_doam">-- %</span></div>
             </div>
 
-            <!-- 2. Khu vực Điện áp & Pin -->
+            <!-- 2. Pin & Điện Áp -->
             <div class="card power">
                 <h3>HỆ THỐNG PIN & ĐIỆN ÁP</h3>
                 <div class="data-row"><span>Điện áp Pin 8S</span><span class="val" id="val_volt" style="color: var(--primary);">-- V</span></div>
                 <div class="data-row"><span>Dung lượng Pin</span><span class="val" id="val_pin" style="color: var(--success);">-- %</span></div>
             </div>
 
-            <!-- 3. Khu vực Điều khiển Bơm -->
+            <!-- 3. Điều khiển Bơm -->
             <div class="card control">
                 <h3>ĐIỀU KHIỂN BƠM NƯỚC</h3>
                 <div class="btn-group">
@@ -147,7 +132,7 @@
                 </div>
             </div>
 
-            <!-- 4. Khu vực Điều khiển RL1 & RL2 -->
+            <!-- 4. Điều khiển Thiết Bị (Nút Toggle) -->
             <div class="card light">
                 <h3>ĐIỀU KHIỂN THIẾT BỊ (RL1 & RL2)</h3>
                 
@@ -181,17 +166,15 @@
             </div>
         </div>
 
-        <!-- Khung ảnh BÊN PHẢI -->
+        <!-- Ảnh Bên Phải -->
         <div class="side-banner">
-            <!-- Thay đường dẫn ảnh của bạn vào thuộc tính src -->
-            <img src="LOGO1.jpg" alt="Ảnh quảng cáo phải">
+            <img src="banner-right.jpg" alt="Banner phải">
         </div>
 
     </div>
 
-    <!-- MÃ XỬ LÝ FIREBASE GIỮ NGUYÊN BÊN DƯỚI -->
+    <!-- MÃ FIREBASE -->
     <script>
-        // Cấu hình kết nối Firebase
         var firebaseConfig = {
             apiKey: "AIzaSyBXIylonI1bj81iBZDHGKeUiArxbRqNQDA", 
             databaseURL: "https://mrluan-bd4bd-default-rtdb.firebaseio.com",
@@ -232,9 +215,7 @@
                 if (data.DA1 !== undefined) document.getElementById("val_doam").innerText = Number(data.DA1).toFixed(0) + " %";
 
                 let volt = data.Volt1_PUMP !== undefined ? data.Volt1_PUMP : data.Volt1;
-                if (volt !== undefined) {
-                    document.getElementById("val_volt").innerText = Number(volt).toFixed(1) + " V";
-                }
+                if (volt !== undefined) document.getElementById("val_volt").innerText = Number(volt).toFixed(1) + " V";
 
                 let pin = data.PIN_PUMP !== undefined ? data.PIN_PUMP : data.PIN;
                 if (pin !== undefined) {
@@ -243,7 +224,7 @@
                     pinEl.style.color = pin < 20 ? "var(--danger)" : (pin < 50 ? "var(--warning)" : "var(--success)");
                 }
 
-                // Cập nhật Relay 1 và icon
+                // Cập nhật Relay 1
                 let valRl1 = data.rl1 !== undefined ? data.rl1 : data.RL1;
                 if (valRl1 !== undefined) {
                     currentRL1 = Number(valRl1);
@@ -252,23 +233,17 @@
                     let icon1 = document.getElementById("icon_rl1");
 
                     if (currentRL1 === 1) {
-                        st1.innerText = "ON";
-                        st1.style.color = "var(--success)";
-                        btnToggle1.innerText = "NHẤN ĐỂ TẮT";
-                        btnToggle1.style.background = "var(--danger)";
-                        icon1.classList.add("bulb-on");
-                        icon1.classList.remove("bulb-off");
+                        st1.innerText = "ON"; st1.style.color = "var(--success)";
+                        btnToggle1.innerText = "NHẤN ĐỂ TẮT"; btnToggle1.style.background = "var(--danger)";
+                        icon1.classList.add("bulb-on"); icon1.classList.remove("bulb-off");
                     } else {
-                        st1.innerText = "OFF";
-                        st1.style.color = "var(--danger)";
-                        btnToggle1.innerText = "NHẤN ĐỂ BẬT";
-                        btnToggle1.style.background = "var(--success)";
-                        icon1.classList.add("bulb-off");
-                        icon1.classList.remove("bulb-on");
+                        st1.innerText = "OFF"; st1.style.color = "var(--danger)";
+                        btnToggle1.innerText = "NHẤN ĐỂ BẬT"; btnToggle1.style.background = "var(--success)";
+                        icon1.classList.add("bulb-off"); icon1.classList.remove("bulb-on");
                     }
                 }
 
-                // Cập nhật Relay 2 và icon
+                // Cập nhật Relay 2
                 let valRl2 = data.rl2 !== undefined ? data.rl2 : data.RL2;
                 if (valRl2 !== undefined) {
                     currentRL2 = Number(valRl2);
@@ -277,19 +252,13 @@
                     let icon2 = document.getElementById("icon_rl2");
 
                     if (currentRL2 === 1) {
-                        st2.innerText = "ON";
-                        st2.style.color = "var(--success)";
-                        btnToggle2.innerText = "NHẤN ĐỂ TẮT";
-                        btnToggle2.style.background = "var(--danger)";
-                        icon2.classList.add("bulb-on");
-                        icon2.classList.remove("bulb-off");
+                        st2.innerText = "ON"; st2.style.color = "var(--success)";
+                        btnToggle2.innerText = "NHẤN ĐỂ TẮT"; btnToggle2.style.background = "var(--danger)";
+                        icon2.classList.add("bulb-on"); icon2.classList.remove("bulb-off");
                     } else {
-                        st2.innerText = "OFF";
-                        st2.style.color = "var(--danger)";
-                        btnToggle2.innerText = "NHẤN ĐỂ BẬT";
-                        btnToggle2.style.background = "var(--success)";
-                        icon2.classList.add("bulb-off");
-                        icon2.classList.remove("bulb-on");
+                        st2.innerText = "OFF"; st2.style.color = "var(--danger)";
+                        btnToggle2.innerText = "NHẤN ĐỂ BẬT"; btnToggle2.style.background = "var(--success)";
+                        icon2.classList.add("bulb-off"); icon2.classList.remove("bulb-on");
                     }
                 }
             }
