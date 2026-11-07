@@ -66,6 +66,8 @@
         .bulb-off { color: #ccc; filter: drop-shadow(0 0 0px transparent); }
         .status { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 
+        .chart-container { position: relative; height: 250px; width: 100%; } /* Cố định chuẩn chiều cao biểu đồ */
+
         @media (max-width: 768px) {
             body { padding: 10px; }
             .header { padding: 60px 15px; margin-bottom: 20px; }
@@ -80,7 +82,7 @@
 
     <div class="header">
         <h1>Trung Tâm Điều Khiển Solar Pump</h1>
-        <p>Giám sát Môi trường, Pin, Biểu đồ & Điều khiển Thiết Bị</p>
+        <p>Giám sát Môi trường, Pin, Biểu đồ 24h & Điều khiển Thiết Bị</p>
     </div>
 
     <div class="main-wrapper">
@@ -147,14 +149,18 @@
 
             <!-- 5. Khung Biểu đồ Pin -->
             <div class="card power chart">
-                <h3>BIỂU ĐỒ PIN (%)</h3>
-                <canvas id="pinChart" style="max-height: 250px;"></canvas>
+                <h3>BIỂU ĐỒ PIN (24 GIỜ)</h3>
+                <div class="chart-container">
+                    <canvas id="pinChart"></canvas>
+                </div>
             </div>
 
             <!-- 6. Khung Biểu đồ Nhiệt độ -->
             <div class="card env chart">
-                <h3>BIỂU ĐỒ NHIỆT ĐỘ (°C)</h3>
-                <canvas id="tempChart" style="max-height: 250px;"></canvas>
+                <h3>BIỂU ĐỒ NHIỆT ĐỘ (24 GIỜ)</h3>
+                <div class="chart-container">
+                    <canvas id="tempChart"></canvas>
+                </div>
             </div>
             
         </div>
@@ -190,11 +196,31 @@
             else if (rlName === 'RL2') sendState('RL2', currentRL2 === 1 ? 0 : 1);
         }
 
-        // ================= CẤU HÌNH BIỂU ĐỒ (CHART.JS) =================
-        const maxDataPoints = 15; // Giới hạn lưu tối đa 15 điểm thời gian gần nhất để biểu đồ không bị nén
+        // ================= CẤU HÌNH BIỂU ĐỒ 24 GIỜ =================
+        // Tính toán: ESP32 gửi dữ liệu mỗi 10 giây -> 1 phút = 6 điểm -> 1 giờ = 360 điểm -> 24 giờ = 8640 điểm.
+        const maxDataPoints = 8640; 
+        
         let timeLabels = [];
         let pinDataArray = [];
         let tempDataArray = [];
+
+        // Cấu hình dùng chung để biểu đồ mượt mà khi hiển thị 24h
+        const commonOptions = {
+            responsive: true, 
+            maintainAspectRatio: false, // Bắt buộc false để lấy chiều cao 250px từ CSS
+            animation: { duration: 0 }, // Tắt hiệu ứng để web không bị treo khi có hàng ngàn dữ liệu
+            elements: { 
+                point: { radius: 0 } // Ẩn các chấm tròn (chỉ hiện đường thẳng) để tối ưu RAM trình duyệt
+            },
+            scales: {
+                x: { 
+                    ticks: { 
+                        maxTicksLimit: 10, // Chỉ hiển thị tối đa khoảng 10 mốc thời gian trên trục X cho đỡ rối
+                        maxRotation: 0
+                    } 
+                }
+            }
+        };
 
         // Khởi tạo biểu đồ Pin
         const ctxPin = document.getElementById('pinChart').getContext('2d');
@@ -206,13 +232,19 @@
                     label: 'Dung lượng Pin (%)',
                     data: pinDataArray,
                     borderColor: '#1cc88a',
-                    backgroundColor: 'rgba(28, 200, 138, 0.2)',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } }, animation: { duration: 0 } }
+            options: {
+                ...commonOptions,
+                scales: {
+                    ...commonOptions.scales,
+                    y: { min: 0, max: 100 }
+                }
+            }
         });
 
         // Khởi tạo biểu đồ Nhiệt độ
@@ -225,13 +257,19 @@
                     label: 'Nhiệt độ (°C)',
                     data: tempDataArray,
                     borderColor: '#e74a3b',
-                    backgroundColor: 'rgba(231, 74, 59, 0.2)',
+                    backgroundColor: 'rgba(231, 74, 59, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.2
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { suggestedMin: 20, suggestedMax: 45 } }, animation: { duration: 0 } }
+            options: {
+                ...commonOptions,
+                scales: {
+                    ...commonOptions.scales,
+                    y: { suggestedMin: 20, suggestedMax: 45 }
+                }
+            }
         });
 
         // ================= LẮNG NGHE DỮ LIỆU TỪ FIREBASE =================
@@ -299,16 +337,16 @@
                     }
                 }
 
-                // ================= CẬP NHẬT DỮ LIỆU BIỂU ĐỒ =================
+                // ================= CẬP NHẬT DỮ LIỆU BIỂU ĐỒ (24H) =================
                 if (currentPin !== null || currentTemp !== null) {
                     let now = new Date();
-                    let timeString = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0') + ":" + String(now.getSeconds()).padStart(2, '0');
+                    let timeString = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
                     
                     timeLabels.push(timeString);
                     if (currentPin !== null) pinDataArray.push(currentPin);
                     if (currentTemp !== null) tempDataArray.push(currentTemp);
 
-                    // Xóa điểm cũ nhất nếu số lượng vượt quá maxDataPoints
+                    // Xóa điểm cũ nhất nếu số lượng vượt quá maxDataPoints (24 giờ)
                     if (timeLabels.length > maxDataPoints) {
                         timeLabels.shift();
                         pinDataArray.shift();
