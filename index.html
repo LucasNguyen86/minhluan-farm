@@ -14,19 +14,18 @@
         }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--dark); margin: 0; padding: 20px; }
         
-        /* --- HEADER FULL HÌNH ẢNH NỀN --- */
+        /* --- HEADER --- */
         .header { 
             position: relative;
-            /* Thay link ảnh bên dưới bằng ảnh thực tế của bạn nếu muốn */
             background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('LOGO1.jpg');
-            background-size: cover; / Phóng to ảnh để lấp đầy toàn bộ kích thước của khối mà không làm biến dạng tỉ lệ ảnh.
-            background-position: center;/ Căn giữa văn bản theo chiều ngang.
+            background-size: cover;
+            background-position: center;
             color: #ffffff;
             text-align: center; 
             padding: 120px 20px; 
             border-radius: 12px;
             margin-bottom: 30px; 
-            box-shadow: 50 4px 12px rgba(0,0,0,0.15); /Tạo hiệu ứng nổi 3D bằng cách đổ bóng mờ xuống phía dưới (4px), với độ nhòe (12px) và màu đen trong suốt 15%.
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .header h1 { 
             color: #ffffff; 
@@ -43,8 +42,40 @@
             text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
         }
 
-        .container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+        /* --- BỐ CỤC CHÍNH (CÓ ẢNH 2 BÊN) --- */
+        .main-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            max-width: 1400px; /* Mở rộng tối đa để chứa ảnh */
+            margin: 0 auto;
+        }
+
+        /* Khung ảnh 2 bên */
+        .side-banner {
+            flex: 0 0 250px; /* Độ rộng cố định của khung ảnh là 250px */
+            display: none; /* Ẩn đi trên màn hình nhỏ */
+        }
+        .side-banner img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        /* Dashboard trung tâm */
+        .container { flex: 1; max-width: 900px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
         
+        /* Hiển thị ảnh 2 bên nếu màn hình đủ lớn (PC/Laptop) */
+        @media (min-width: 1100px) {
+            .side-banner {
+                display: block;
+            }
+        }
+        
+        /* --- CARD STYLE --- */
         .card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
         .card.env { border-left-color: var(--info); }
         .card.power { border-left-color: var(--warning); }
@@ -70,7 +101,6 @@
         .bulb-icon { transition: all 0.3s ease; }
         .bulb-on { color: #ffca28; filter: drop-shadow(0 0 8px rgba(255, 202, 40, 0.8)); }
         .bulb-off { color: #ccc; filter: drop-shadow(0 0 0px transparent); }
-        /* -------------------------------------- */
         
         .status { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
     </style>
@@ -82,65 +112,84 @@
         <p>Giám sát Môi trường, Pin & Điều khiển Thiết Bị</p>
     </div>
 
-    <div class="container">
-        <!-- 1. Khung Môi Trường -->
-        <div class="card env">
-            <h3>MÔI TRƯỜNG</h3>
-            <div class="data-row"><span>Nhiệt độ </span><span class="val" id="val_nhietdo">-- °C</span></div>
-            <div class="data-row"><span>Độ ẩm </span><span class="val" id="val_doam">-- %</span></div>
+    <!-- KHUNG BAO BỌC CHÍNH ĐỂ CHIA 3 CỘT -->
+    <div class="main-wrapper">
+        
+        <!-- Khung ảnh BÊN TRÁI -->
+        <div class="side-banner">
+            <!-- Thay đường dẫn ảnh của bạn vào thuộc tính src -->
+            <img src="banner-left.jpg" alt="Ảnh quảng cáo trái">
         </div>
 
-        <!-- 2. Khu vực Điện áp & Pin -->
-        <div class="card power">
-            <h3>HỆ THỐNG PIN & ĐIỆN ÁP</h3>
-            <div class="data-row"><span>Điện áp Pin 8S</span><span class="val" id="val_volt" style="color: var(--primary);">-- V</span></div>
-            <div class="data-row"><span>Dung lượng Pin</span><span class="val" id="val_pin" style="color: var(--success);">-- %</span></div>
-        </div>
-
-        <!-- 3. Khu vực Điều khiển Bơm -->
-        <div class="card control">
-            <h3>ĐIỀU KHIỂN BƠM NƯỚC</h3>
-            <div class="btn-group">
-                <button class="btn btn-start" onclick="sendTrigger('Start')">BƠM THỦ CÔNG</button>
-                <button class="btn btn-stop" onclick="sendTrigger('Stop')">DỪNG BƠM</button>
-                <button class="btn btn-auto" onclick="sendTrigger('Auto')">BƠM TỰ ĐỘNG (100s)</button>
+        <!-- DASHBOARD CHÍNH Ở GIỮA -->
+        <div class="container">
+            <!-- 1. Khung Môi Trường -->
+            <div class="card env">
+                <h3>MÔI TRƯỜNG</h3>
+                <div class="data-row"><span>Nhiệt độ </span><span class="val" id="val_nhietdo">-- °C</span></div>
+                <div class="data-row"><span>Độ ẩm </span><span class="val" id="val_doam">-- %</span></div>
             </div>
-        </div>
 
-        <!-- 4. Khu vực Điều khiển RL1 & RL2 -->
-        <div class="card light">
-            <h3>ĐIỀU KHIỂN THIẾT BỊ (RL1 & RL2)</h3>
-            
-            <!-- Thiết Bị 1 -->
-            <div style="margin-bottom: 20px;">
-                <div class="status">
-                    <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 1 (RL1)</span>
-                    <span id="RL1">--</span>
-                </div>
-                <div class="relay-container">
-                    <svg id="icon_rl1" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
-                    </svg>
-                    <button id="btn_rl1_toggle" class="btn btn-toggle" onclick="toggleRelay('RL1')">ĐANG TẢI...</button>
+            <!-- 2. Khu vực Điện áp & Pin -->
+            <div class="card power">
+                <h3>HỆ THỐNG PIN & ĐIỆN ÁP</h3>
+                <div class="data-row"><span>Điện áp Pin 8S</span><span class="val" id="val_volt" style="color: var(--primary);">-- V</span></div>
+                <div class="data-row"><span>Dung lượng Pin</span><span class="val" id="val_pin" style="color: var(--success);">-- %</span></div>
+            </div>
+
+            <!-- 3. Khu vực Điều khiển Bơm -->
+            <div class="card control">
+                <h3>ĐIỀU KHIỂN BƠM NƯỚC</h3>
+                <div class="btn-group">
+                    <button class="btn btn-start" onclick="sendTrigger('Start')">BƠM THỦ CÔNG</button>
+                    <button class="btn btn-stop" onclick="sendTrigger('Stop')">DỪNG BƠM</button>
+                    <button class="btn btn-auto" onclick="sendTrigger('Auto')">BƠM TỰ ĐỘNG (100s)</button>
                 </div>
             </div>
 
-            <!-- Thiết Bị 2 -->
-            <div>
-                <div class="status">
-                    <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 2 (RL2)</span>
-                    <span id="RL2">--</span>
+            <!-- 4. Khu vực Điều khiển RL1 & RL2 -->
+            <div class="card light">
+                <h3>ĐIỀU KHIỂN THIẾT BỊ (RL1 & RL2)</h3>
+                
+                <!-- Thiết Bị 1 -->
+                <div style="margin-bottom: 20px;">
+                    <div class="status">
+                        <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 1 (RL1)</span>
+                        <span id="RL1">--</span>
+                    </div>
+                    <div class="relay-container">
+                        <svg id="icon_rl1" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                        <button id="btn_rl1_toggle" class="btn btn-toggle" onclick="toggleRelay('RL1')">ĐANG TẢI...</button>
+                    </div>
                 </div>
-                <div class="relay-container">
-                    <svg id="icon_rl2" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
-                    </svg>
-                    <button id="btn_rl2_toggle" class="btn btn-toggle" onclick="toggleRelay('RL2')">ĐANG TẢI...</button>
+
+                <!-- Thiết Bị 2 -->
+                <div>
+                    <div class="status">
+                        <span style="font-size: 14px; font-weight: bold; color: var(--dark);">Thiết bị 2 (RL2)</span>
+                        <span id="RL2">--</span>
+                    </div>
+                    <div class="relay-container">
+                        <svg id="icon_rl2" class="bulb-icon bulb-off" xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                        <button id="btn_rl2_toggle" class="btn btn-toggle" onclick="toggleRelay('RL2')">ĐANG TẢI...</button>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Khung ảnh BÊN PHẢI -->
+        <div class="side-banner">
+            <!-- Thay đường dẫn ảnh của bạn vào thuộc tính src -->
+            <img src="banner-right.jpg" alt="Ảnh quảng cáo phải">
+        </div>
+
     </div>
 
+    <!-- MÃ XỬ LÝ FIREBASE GIỮ NGUYÊN BÊN DƯỚI -->
     <script>
         // Cấu hình kết nối Firebase
         var firebaseConfig = {
