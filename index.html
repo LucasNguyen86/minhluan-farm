@@ -66,14 +66,16 @@
         .bulb-off { color: #ccc; filter: drop-shadow(0 0 0px transparent); }
         .status { font-size: 14px; color: #888; margin-top: 10px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 
-        .chart-container { position: relative; height: 180px; width: 100%; }
+        /* Đã thu nhỏ chiều cao khung biểu đồ xuống 150px */
+        .chart-container { position: relative; height: 150px; width: 100%; }
 
-        /* CSS cho ô nhập Hẹn giờ */
+        /* CSS cho ô nhập Hẹn giờ - Đã sửa lỗi tràn khung */
         .time-input {
-            width: 100%; box-sizing: border-box; padding: 6px; margin-top: 2px;
-            border: 2px solid #eaecf4; border-radius: 8px; font-size: 13px;
+            width: 100%; box-sizing: border-box; padding: 6px 2px; margin-top: 5px;
+            border: 1px solid #d1d3e2; border-radius: 6px; font-size: 13px;
             outline: none; transition: border-color 0.2s; color: var(--dark);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
         }
         .time-input:focus { border-color: var(--primary); }
 
@@ -128,12 +130,12 @@
             <!-- 3.5. Khung Hẹn Giờ Tự Động -->
             <div class="card control" style="border-left-color: var(--info);">
                 <h3>HẸN GIỜ TỰ ĐỘNG THIẾT BỊ 1 (RL1)</h3>
-                <div style="display: flex; gap: 15px; margin-top: 15px; text-align: left;">
-                    <div style="flex: 1;">
+                <div style="display: flex; gap: 8px; margin-top: 15px; text-align: left;">
+                    <div style="flex: 1; min-width: 0;">
                         <label style="font-size: 13px; font-weight: bold; color: var(--dark);">GIỜ BẬT:</label>
                         <input type="time" id="time_on" class="time-input">
                     </div>
-                    <div style="flex: 1;">
+                    <div style="flex: 1; min-width: 0;">
                         <label style="font-size: 13px; font-weight: bold; color: var(--dark);">GIỜ TẮT:</label>
                         <input type="time" id="time_off" class="time-input">
                     </div>
@@ -175,7 +177,7 @@
                 </div>
             </div>
 
-            <!-- 5. Khung Biểu đồ Nhiệt độ -->
+            <!-- 5. Khung Biểu đồ Nhiệt độ (Đã thu nhỏ) -->
             <div class="card env chart">
                 <h3>BIỂU ĐỒ NHIỆT ĐỘ (24 GIỜ)</h3>
                 <div class="chart-container">
@@ -261,7 +263,7 @@
         });
 
         // ================= CẤU HÌNH BIỂU ĐỒ (NHIỆT ĐỘ) =================
-        const maxDataPoints = 360; 
+        const maxDataPoints = 144; // 144 điểm tương đương 24 giờ (mỗi 10 phút lưu 1 điểm)
         
         let timeLabels = [];
         let tempDataArray = [];
@@ -292,26 +294,36 @@
             options: { ...commonOptions, scales: { ...commonOptions.scales, y: { suggestedMin: 20, suggestedMax: 45 } } }
         });
 
-        // ================= LẮNG NGHE DỮ LIỆU TỪ FIREBASE =================
+        // ================= TẢI LỊCH SỬ NHIỆT ĐỘ TỪ FIREBASE =================
+        db.ref("/Esp32/LichSuNhietDo").limitToLast(maxDataPoints).on("child_added", function(snapshot) {
+            var data = snapshot.val();
+            if (data && data.time && data.temp) {
+                timeLabels.push(data.time);
+                tempDataArray.push(Number(data.temp));
+
+                if (timeLabels.length > maxDataPoints) {
+                    timeLabels.shift();
+                    tempDataArray.shift();
+                }
+                tempChart.update();
+            }
+        });
+
+        // ================= LẮNG NGHE DỮ LIỆU THỜI GIAN THỰC TỪ FIREBASE =================
         db.ref("/Esp32/nhandulieu").on("value", function(snapshot) {
             var data = snapshot.val();
             if (data) {
-                let currentTemp = null;
-                let currentPin = null;
-
                 if (data.ND1 !== undefined) {
-                    currentTemp = Number(data.ND1);
-                    document.getElementById("val_nhietdo").innerText = currentTemp.toFixed(1) + " °C";
+                    document.getElementById("val_nhietdo").innerText = Number(data.ND1).toFixed(1) + " °C";
                 }
                 if (data.DA1 !== undefined) document.getElementById("val_doam").innerText = Number(data.DA1).toFixed(0) + " %";
 
                 let volt = data.Volt1_PUMP !== undefined ? data.Volt1_PUMP : data.Volt1;
                 if (volt !== undefined) document.getElementById("val_volt").innerText = Number(volt).toFixed(1) + " V";
 
-                // Vẫn giữ lại phần đọc dữ liệu Pin để hiển thị bằng số
                 let pin = data.PIN_PUMP !== undefined ? data.PIN_PUMP : data.PIN;
                 if (pin !== undefined) {
-                    currentPin = Number(pin);
+                    let currentPin = Number(pin);
                     let pinEl = document.getElementById("val_pin");
                     pinEl.innerText = currentPin.toFixed(0) + " %";
                     pinEl.style.color = currentPin < 20 ? "var(--danger)" : (currentPin < 50 ? "var(--warning)" : "var(--success)");
@@ -351,22 +363,6 @@
                         btnToggle2.innerText = "NHẤN ĐỂ BẬT"; btnToggle2.style.background = "var(--success)";
                         icon2.classList.add("bulb-off"); icon2.classList.remove("bulb-on");
                     }
-                }
-
-                // Chỉ còn vẽ lại biểu đồ cho Nhiệt độ
-                if (currentTemp !== null) {
-                    let now = new Date();
-                    let timeString = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
-                    
-                    timeLabels.push(timeString);
-                    tempDataArray.push(currentTemp);
-
-                    if (timeLabels.length > maxDataPoints) {
-                        timeLabels.shift();
-                        tempDataArray.shift();
-                    }
-
-                    tempChart.update();
                 }
             }
         });
